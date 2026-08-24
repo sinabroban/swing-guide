@@ -1,0 +1,13 @@
+{
+  "kr": [
+    { "symbol": "005930", "name": "삼성전자", "category": "SAFE" },
+    { "symbol": "373220", "name": "LG에너지솔루션", "category": "MOMENTUM" },
+    { "symbol": "005380", "name": "현대차", "category": "VALUE" },
+    { "symbol": "000660", "name": "SK하이닉스", "category": "MOMENTUM" }
+  ],
+  "us": [
+    { "symbol": "NVDA", "name": "엔비디아", "category": "MOMENTUM" },
+    { "symbol": "AAPL", "name": "애플", "category": "SAFE" },
+    { "symbol": "JNJ", "name": "존슨앤드존슨", "category": "VALUE" }
+  ]
+}

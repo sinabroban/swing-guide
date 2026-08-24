@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#070F22">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>SwingGuide | 주간 모멘텀 스크리너</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { sans:['Pretendard','system-ui','-apple-system','sans-serif'] },
+      colors: {
+        volt:{ DEFAULT:'#FFC93C', soft:'#FFE08A', deep:'#B8860B' },
+        bull:'#34D399', bear:'#FB7185'
+      }
+    }
+  }
+}
+</script>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ===== Stitch Design Tokens : Dark / Light ===== */
+:root[data-theme="dark"]{
+  --bg:#070F22; --glow1:rgba(255,201,60,.16); --glow2:rgba(22,41,90,.5);
+  --card:rgba(255,255,255,.045); --card-solid:#0F1F42; --card-hover:rgba(255,255,255,.08);
+  --line:rgba(255,255,255,.10); --line-strong:rgba(255,255,255,.18);
+  --t1:#F1F5F9; --t2:#CBD5E1; --t3:#64748B;
+  --shadow:0 20px 50px rgba(0,0,0,.45);
+}
+:root[data-theme="light"]{
+  --bg:#EDF1F9; --glow1:rgba(184,134,11,.12); --glow2:rgba(59,91,180,.14);
+  --card:rgba(255,255,255,.85); --card-solid:#FFFFFF; --card-hover:#FFFFFF;
+  --line:rgba(15,31,66,.10); --line-strong:rgba(15,31,66,.22);
+  --t1:#0B1730; --t2:#334155; --t3:#7C8AA5;
+  --shadow:0 20px 50px rgba(30,50,100,.14);
+}
+html{ scroll-behavior:smooth; }
+body{
+  background:
+    radial-gradient(ellipse at top -10%, var(--glow1), transparent 50%),
+    radial-gradient(ellipse at bottom right, var(--glow2), transparent 55%),
+    var(--bg);
+  min-height:100dvh; color:var(--t1); transition: background .4s ease, color .3s ease;
+}
+::-webkit-scrollbar{ width:8px; height:8px; }
+::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:99px; }
+
+/* ===== Semantic Components ===== */
+.hdr{ background:color-mix(in srgb, var(--bg) 82%, transparent); border-bottom:1px solid var(--line); backdrop-filter:blur(20px); }
+.card{ background:var(--card); border:1px solid var(--line); box-shadow:var(--shadow);
+       transition: transform .25s cubic-bezier(.22,.8,.32,1), border-color .25s, background .25s, box-shadow .25s; }
+.card-lift:hover{ transform:translateY(-5px) scale(1.015); border-color:rgba(255,201,60,.55); box-shadow:0 24px 55px rgba(255,201,60,.12); }
+.inset{ background:color-mix(in srgb, var(--card-solid) 80%, transparent); border:1px solid var(--line); }
+.t1{ color:var(--t1); } .t2{ color:var(--t2); } .t3{ color:var(--t3); }
+.field{ background:var(--card-solid); border:1px solid var(--line-strong); color:var(--t1); transition:border-color .2s; }
+.field:focus{ border-color:#FFC93C; outline:none; }
+.field::placeholder{ color:var(--t3); }
+
+/* ===== Animations ===== */
+.rise{ animation:rise .55s cubic-bezier(.22,.8,.32,1) both; }
+@keyframes rise{ from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
+.pop{ animation:pop .28s cubic-bezier(.22,.8,.32,1) both; }
+@keyframes pop{ from{opacity:0;transform:translateY(40px) scale(.97)} to{opacity:1;transform:none} }
+.pulse-dot{ animation:pulseDot 2s ease-in-out infinite; }
+@keyframes pulseDot{ 0%,100%{opacity:1} 50%{opacity:.3} }
+.glow-pulse{ animation:glowPulse 1.6s ease-in-out infinite; }
+@keyframes glowPulse{
+  0%,100%{ filter:drop-shadow(0 0 2px rgba(255,201,60,.25)); }
+  50%{ filter:drop-shadow(0 0 14px rgba(255,201,60,.75)); }
+}
+.flash{ animation:flash .9s ease; }
+@keyframes flash{ 0%{ background:rgba(255,201,60,.35);} 100%{ background:transparent;} }
+.donut{ transition:stroke-dashoffset 1s cubic-bezier(.22,.8,.32,1); }
+.check-pop{ animation:checkPop .35s cubic-bezier(.34,1.56,.64,1); }
+@keyframes checkPop{ 0%{transform:scale(.6)} 70%{transform:scale(1.15)} 100%{transform:scale(1)} }
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+</style>
+</head>
+<body class="antialiased pb-28">
+
+<!-- ===== Header ===== -->
+<header class="hdr sticky top-0 z-30">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="w-11 h-11 shrink-0 rounded-2xl bg-gradient-to-br from-volt to-amber-500 flex items-center justify-center shadow-lg shadow-volt/25">
+        <svg class="w-6 h-6 text-[#0B1730]" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      </div>
+      <div class="min-w-0">
+        <h1 class="text-lg sm:text-xl font-black tracking-tight leading-none">SWING<span class="text-volt">GUIDE</span></h1>
+        <p class="text-[11px] sm:text-xs t3 mt-0.5 font-medium truncate">주간 모멘텀 스크리너 · 매주 자동 종목 선별</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 shrink-0">
+      <!-- 상승 색상 -->
+      <button id="upColorBtn" onclick="cycleUpColor()" title="상승 색상 변경"
+        class="w-10 h-10 rounded-xl inset flex items-center justify-center font-black text-sm hover:border-volt/60 transition-colors"></button>
+      <!-- 사운드 -->
+      <button id="soundBtn" onclick="toggleMute()" title="효과음 켜기/끄기"
+        class="w-10 h-10 rounded-xl inset flex items-center justify-center hover:border-volt/60 transition-colors"></button>
+      <!-- 테마 -->
+      <button id="themeBtn" onclick="toggleTheme()" title="다크/라이트 모드"
+        class="w-10 h-10 rounded-xl inset flex items-center justify-center hover:border-volt/60 transition-colors"></button>
+      <!-- LIVE -->
+      <span id="liveBadge" class="hidden sm:flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 text-emerald-300">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span><span id="dataSource">LIVE</span>
+      </span>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 sm:px-6">
+
+  <!-- ===== 상태 스트립 ===== -->
+  <section class="mt-5 rise flex flex-wrap items-center gap-2.5 text-sm">
+    <span id="regimeChip" class="font-bold px-3.5 py-1.5 rounded-xl border">국면 분석중...</span>
+    <span id="metaBasis" class="t3 text-xs sm:text-sm"></span>
+  </section>
+
+  <!-- ===== Hero ===== -->
+  <section class="mt-4 grid lg:grid-cols-3 gap-4">
+    <div class="lg:col-span-2 card rounded-3xl p-6 sm:p-8">
+      <p class="text-xs sm:text-sm font-bold text-volt tracking-[.25em] uppercase">This Week's Picks</p>
+      <div class="mt-2 flex items-end gap-4 flex-wrap">
+        <p class="leading-none">
+          <span id="pickCount" class="text-7xl sm:text-8xl xl:text-9xl font-black tabular-nums tracking-tighter glow-pulse">-</span>
+          <span class="text-2xl sm:text-3xl font-black t2 ml-1">개</span>
+        </p>
+        <h2 class="text-xl sm:text-2xl xl:text-3xl font-black leading-snug pb-2">이번 주 조건 통과 후보</h2>
+      </div>
+      <p class="mt-3 text-sm sm:text-base t2 leading-relaxed max-w-xl">
+        국내 상장 <b class="t1">전 종목</b>을 대상으로 시총·유동성 품질 필터를 거친 뒤,
+        검증된 <b class="text-volt">모멘텀 팩터</b>로 점수화한 상위 종목만 추렸습니다.
+        다음 갱신까지 이 목록이 전부입니다.
+      </p>
+      <div class="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-xs sm:text-sm t3 font-semibold">
+        <span>기준일 <b id="basisDate" class="t1 tabular-nums">-</b></span>
+        <span>다음 갱신 <b id="nextReview" class="text-volt tabular-nums">매주 일요일</b></span>
+        <span>유니버스 <b class="t1">시총 5,000억↑ / 우선주·스팩 제외</b></span>
+      </div>
+    </div>
+
+    <!-- 성적표 -->
+    <div class="lg:col-span-1 card rounded-3xl p-6 sm:p-7" style="animation-delay:.08s" >
+      <p class="text-xs font-bold t3 tracking-[.25em] uppercase">Track Record</p>
+      <h2 class="text-xl sm:text-2xl font-black mt-1">지난 추천 성적표</h2>
+      <div class="mt-4 flex items-center gap-5">
+        <div class="relative w-28 h-28 shrink-0">
+          <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="var(--line)" stroke-width="11"/>
+            <circle id="winRing" cx="50" cy="50" r="42" fill="none" stroke="#34D399" stroke-width="11"
+                    stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264" class="donut"/>
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <span id="winRate" class="text-2xl font-black tabular-nums">--</span>
+            <span class="text-[9px] font-bold t3 tracking-[.15em]">WIN RATE</span>
+          </div>
+        </div>
+        <div class="flex-1 space-y-2 text-sm">
+          <div class="flex justify-between"><span class="t3">평균 수익률</span><b id="avgReturn" class="tabular-nums">-</b></div>
+          <div class="flex justify-between"><span class="t3">완료된 추천</span><b id="closedCount" class="tabular-nums">-</b></div>
+          <div class="flex justify-between"><span class="t3">진행 중</span><b id="openCount" class="tabular-nums text-volt">-</b></div>
+        </div>
+      </div>
+      <div id="recentList" class="mt-4 space-y-1.5"></div>
+    </div>
+  </section>
+
+  <!-- ===== 후보 종목 ===== -->
+  <section class="mt-8">
+    <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+      <h2 class="text-2xl sm:text-3xl font-black tracking-tight">후보 종목
+        <span id="stockCount" class="align-middle ml-1 text-sm font-extrabold text-[#0B1730] bg-volt px-2 py-0.5 rounded-lg">0</span>
+      </h2>
+      <span class="text-xs t3">[계산] 버튼 → 손익비 즉시 계산</span>
+    </div>
+    <div id="pickList" class="grid md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+  </section>
+
+  <!-- ===== 3단계 체크리스트 ===== -->
+  <section class="mt-10 grid lg:grid-cols-2 gap-4">
+    <div class="card rounded-3xl p-5 sm:p-7">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="text-xs font-bold t3 tracking-widest uppercase">Checklist</p>
+          <h2 class="text-2xl font-black tracking-tight">매매 전 3단계 원칙</h2>
+        </div>
+        <p id="checkProgress" class="text-3xl font-black tabular-nums text-volt">0%</p>
+      </div>
+      <div class="mt-3 h-2.5 rounded-full overflow-hidden" style="background:var(--line)">
+        <div id="checkBar" class="h-full rounded-full bg-gradient-to-r from-volt to-amber-400 transition-all duration-500" style="width:0%"></div>
+      </div>
+      <div id="checkStages" class="mt-4 space-y-5"></div>
+      <button onclick="resetChecklist()" class="mt-5 w-full py-2.5 rounded-xl border text-sm font-bold t2 hover:bg-white/5 transition-colors" style="border-color:var(--line-strong)">체크 초기화</button>
+    </div>
+
+    <!-- 계산기 -->
+    <div class="card rounded-3xl p-5 sm:p-7">
+      <p class="text-xs font-bold t3 tracking-widest uppercase">Risk Calculator</p>
+      <h2 class="text-2xl font-black tracking-tight">손익비 · 비중 계산기 <span class="text-xs font-bold text-volt align-middle ml-1">실시간</span></h2>
+      <div class="mt-4 grid grid-cols-2 gap-3">
+        <label><span class="text-xs font-bold t3">진입가</span>
+          <input id="calcEntry" type="number" inputmode="decimal" placeholder="예: 128700"
+            class="field mt-1 w-full rounded-xl px-3.5 py-2.5 text-base font-bold tabular-nums"></label>
+        <label><span class="text-xs font-bold t3">손절가</span>
+          <input id="calcStop" type="number" inputmode="decimal" placeholder="예: 121000"
+            class="field mt-1 w-full rounded-xl px-3.5 py-2.5 text-base font-bold tabular-nums"></label>
+        <label><span class="text-xs font-bold t3">목표가</span>
+          <input id="calcTarget" type="number" inputmode="decimal" placeholder="예: 141000"
+            class="field mt-1 w-full rounded-xl px-3.5 py-2.5 text-base font-bold tabular-nums"></label>
+        <label><span class="text-xs font-bold t3">운용 자본 (원)</span>
+          <input id="calcCapital" type="number" inputmode="numeric" placeholder="예: 10000000"
+            class="field mt-1 w-full rounded-xl px-3.5 py-2.5 text-base font-bold tabular-nums"></label>
+        <label class="col-span-2"><span class="text-xs font-bold t3">종목당 허용 리스크 (<span id="riskLabel">2</span>%)</span>
+          <input id="calcRisk" type="range" min="1" max="5" step="0.5" value="2" class="mt-2 w-full accent-volt"></label>
+      </div>
+      <button onclick="computeRisk(true)" class="mt-4 w-full py-3.5 rounded-2xl bg-volt hover:bg-volt-soft transition-colors text-[#0B1730] font-black text-base active:scale-[.98]">자동 계산하기</button>
+      <div id="calcResult" class="mt-4 hidden">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="inset rounded-2xl p-3.5 text-center" style="border-color:rgba(52,211,153,.35)">
+            <p class="text-xs font-bold text-bull/80">손익비 (R/R)</p>
+            <p id="rrRatio" class="text-2xl sm:text-3xl font-black tabular-nums text-bull mt-0.5">-</p>
+          </div>
+          <div class="inset rounded-2xl p-3.5 text-center">
+            <p class="text-xs font-bold t3">손절폭 / 익절폭</p>
+            <p id="rangePct" class="text-2xl sm:text-3xl font-black tabular-nums mt-0.5">-</p>
+          </div>
+          <div class="inset rounded-2xl p-3.5 text-center">
+            <p class="text-xs font-bold t3">적정 매수 수량</p>
+            <p id="qtyResult" class="text-2xl sm:text-3xl font-black tabular-nums text-volt mt-0.5">-</p>
+          </div>
+          <div class="inset rounded-2xl p-3.5 text-center">
+            <p class="text-xs font-bold t3">투입 비중 / 최대 손실액</p>
+            <p id="weightResult" class="text-xl sm:text-2xl font-black tabular-nums mt-1">-</p>
+          </div>
+        </div>
+        <p id="calcAdvice" class="mt-3 text-sm font-bold text-center rounded-xl py-2.5 border"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 복기 로그 ===== -->
+  <section class="mt-10 card rounded-3xl p-5 sm:p-7">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p class="text-xs font-bold t3 tracking-widest uppercase">Trade Journal</p>
+        <h2 class="text-2xl font-black tracking-tight">나의 매매 복기</h2>
+      </div>
+      <button onclick="exportJournal()" class="text-xs font-bold px-3 py-1.5 rounded-lg border t2 hover:bg-white/5 transition-colors" style="border-color:var(--line-strong)">JSON 백업</button>
+    </div>
+    <form onsubmit="addJournal(event)" class="mt-4 grid grid-cols-2 md:grid-cols-6 gap-2.5">
+      <input id="jDate" type="date" required class="field col-span-2 md:col-span-1 rounded-xl px-3 py-2.5 text-sm font-bold">
+      <input id="jSymbol" type="text" required placeholder="종목명" class="field md:col-span-1 rounded-xl px-3 py-2.5 text-sm font-bold">
+      <select id="jAction" class="field md:col-span-1 rounded-xl px-3 py-2.5 text-sm font-bold">
+        <option value="BUY">매수</option><option value="SELL">매도</option><option value="NOTE">관찰</option>
+      </select>
+      <input id="jPrice" type="number" inputmode="decimal" required placeholder="체결가" class="field md:col-span-1 rounded-xl px-3 py-2.5 text-sm font-bold tabular-nums">
+      <input id="jMemo" type="text" placeholder="복기 메모" class="field col-span-2 md:col-span-1 rounded-xl px-3 py-2.5 text-sm">
+      <button class="col-span-2 md:col-span-1 py-2.5 rounded-xl bg-volt hover:bg-volt-soft transition-colors text-[#0B1730] font-black text-sm active:scale-[.98]">기록 추가</button>
+    </form>
+    <div id="journalList" class="mt-4 space-y-2"></div>
+  </section>
+
+  <section class="mt-8 mb-6 rise rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-center">
+    <p class="text-xs sm:text-sm t2 leading-relaxed">
+      <span class="font-black text-amber-300">⚠ Disclaimer</span> · 본 화면의 후보는 통계적 팩터에 따른 참고 정보이며 매수 권유가 아닙니다.<br class="sm:hidden">
+      선정 기준을 통과한 종목이 없는 주도 있습니다. 모든 투자 판단과 책임은 본인에게 있습니다.
+    </p>
+  </section>
+</main>
+
+<!-- ===== Modal ===== -->
+<div id="modalOverlay" class="fixed inset-0 z-50 hidden items-end sm:items-center sm:justify-center">
+  <div id="modalBackdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+  <div id="modalPanel" class="pop relative w-full sm:max-w-lg max-h-[88dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl shadow-2xl"
+       style="background:var(--card-solid); border:1px solid var(--line-strong)">
+    <div id="modalHeader" class="sticky top-0 z-10 px-5 pt-5 pb-4 border-b" style="background:var(--card-solid); border-color:var(--line)"></div>
+    <div id="modalBody" class="px-5 py-4 space-y-3.5"></div>
+    <div class="px-5 pb-6 pt-1">
+      <button onclick="fillCalc(window.__modalPick)" class="w-full py-3.5 rounded-2xl bg-volt hover:bg-volt-soft transition-colors text-[#0B1730] font-black text-base active:scale-[.98]">이 시나리오 계산기에 불러오기</button>
+      <p class="mt-3 text-[11px] t3 text-center">후보 선정은 과거 팩터 기반이며 미래 수익을 보장하지 않습니다.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= Sample (fallback) ================= */
+const SAMPLE = {
+  generated_at:"샘플", next_review:"-",
+  regime:{score:47,status:"NEUTRAL",vix:null},
+  picks:[], performance:{win_rate:null,closed_count:0,open_count:0,recent:[]}
+};
+
+/* ================= Preferences ================= */
+const PREF_KEY = 'sg_prefs_v1';
+let prefs = Object.assign(
+  { theme:'dark', muted:false, upMode:'kr' },
+  (()=>{ try{ return JSON.parse(localStorage.getItem(PREF_KEY)) || {}; }catch(_){ return {}; } })()
+);
+function savePrefs(){ localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); }
+
+const UP_META = {
+  kr:   { name:'한국식', up:'bear', down:'bull', upHex:'#FB7185', dnHex:'#34D399', arrow:'▲' },
+  intl: { name:'글로벌', up:'bull', down:'bear', upHex:'#34D399', dnHex:'#FB7185', arrow:'▲' }
+};
+const clsUp = () => UP_META[prefs.upMode].up === 'bear' ? 'text-bear' : 'text-bull';
+const clsDn = () => UP_META[prefs.upMode].down === 'bull' ? 'text-bull' : 'text-bear';
+
+function renderPrefButtons(){
+  document.getElementById('upColorBtn').innerHTML =
+    `<span style="color:${UP_META[prefs.upMode].upHex}">${UP_META[prefs.upMode].arrow}</span>`;
+  document.getElementById('upColorBtn').title = `상승 색상: ${UP_META[prefs.upMode].name}`;
+  const sun = '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path stroke-linecap="round" d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4l1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4l1.4-1.4"/></svg>';
+  const moon = '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>';
+  document.getElementById('themeBtn').innerHTML = prefs.theme === 'dark' ? sun : moon;
+  const sndOn = '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM15.5 8.5a5 5 0 010 7"/></svg>';
+  const sndOff = '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/></svg>';
+  document.getElementById('soundBtn').innerHTML = prefs.muted ? sndOff : sndOn;
+}
+function toggleTheme(){
+  prefs.theme = prefs.theme === 'dark' ? 'light' : 'dark';
+  savePrefs(); applyTheme(); sfx.tick();
+}
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', prefs.theme);
+  const mc = document.querySelector('meta[name=theme-color]');
+  mc?.setAttribute('content', prefs.theme === 'dark' ? '#070F22' : '#EDF1F9');
+  renderPrefButtons();
+  renderPicks();
+}
+function toggleMute(){ prefs.muted = !prefs.muted; savePrefs(); renderPrefButtons(); if(!prefs.muted) sfx.chime(); }
+function cycleUpColor(){
+  prefs.upMode = prefs.upMode === 'kr' ? 'intl' : 'kr';
+  savePrefs(); renderPrefButtons(); renderPicks();
+}
+
+/* ================= Sound Engine (Web Audio API) ================= */
+const sfx = (()=>{
+  let ctx = null;
+  function ac(){
+    if (!ctx){
+      try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(_){ return null; }
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function tone(freq, dur, delay, type='sine', vol=0.12){
+    const c = ac(); if (!c || prefs.muted) return;
+    const t0 = c.currentTime + (delay || 0);
+    const osc = c.createOscillator(), gain = c.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(vol, t0 + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain).connect(c.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.05);
+  }
+  return {
+    tick(){ tone(1250, .07, 0, 'square', .06); tone(1850, .05, .05, 'square', .04); },
+    uncheck(){ tone(700, .07, 0, 'square', .05); },
+    chime(){ tone(880, .12, 0, 'sine'); tone(1174, .12, .09, 'sine'); tone(1568, .22, .18, 'sine', .14); },
+    coin(){ tone(1046, .09, 0, 'triangle', .1); tone(1568, .16, .08, 'triangle', .12); },
+    warn(){ tone(320, .18, 0, 'sawtooth', .07); }
+  };
+})();
+
+/* ================= Constants & State ================= */
+const DATA_URLS = ['./picks.json'];
+const STATUS_META = {
+  ATTACK:  { label:'공격 국면 — 모멘텀 유리', cls:'border-emerald-400/40 text-emerald-300', bg:'rgba(52,211,153,.12)', color:'#34D399' },
+  NEUTRAL: { label:'관망 국면 — 소량 선별',  cls:'border-volt/40 text-volt',               bg:'rgba(255,201,60,.12)', color:'#FFC93C' },
+  DEFENSE: { label:'수비 국면 — 현금 우위',  cls:'border-bear/40 text-bear',               bg:'rgba(251,113,133,.12)', color:'#FB7185' }
+};
+const CHECK_STAGES = [
+  { title:'STEP 1 · 진입 전 점검', items:[
+    '시장 국면(공격/관망/수비) 확인했는가?',
+    '이번 주 신규 후보인가, 이미 오른 종목을 추격하는 것은 아닌가?',
+    '오늘 주요 일정(실적, FOMC 등) 확인했는가?' ]},
+  { title:'STEP 2 · 리스크 설계', items:[
+    '손익비(R/R) 2.0 이상인가?',
+    '손절가를 진입 전에 확정하고 주문까지 걸었는가?',
+    '허용 리스크(자본의 1~3%) 이내인가?' ]},
+  { title:'STEP 3 · 청산 규율', items:[
+    '목표가 도달 시 반드시 익절할 것인가?',
+    '감정 상태(흥분/조급함) 안정적인가?' ]}
+];
+
+let picks = [];
+let lastSnapshot = '';
+
+/* ================= Utils ================= */
+function esc(str){
+  return String(str ?? '').replace(/[&<>"']/g,
+    c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function todayKey(){ return new Date().toISOString().slice(0,10); }
+
+/* ================= Load ================= */
+async function loadData(){
+  for (const url of DATA_URLS){
+    try {
+      const res = await fetch(url + '?t=' + Date.now(), { cache:'no-store' });
+      if (!res.ok) continue;
+      document.getElementById('dataSource').textContent = 'LIVE';
+      return await res.json();
+    } catch(_){}
+  }
+  document.getElementById('dataSource').textContent = 'SAMPLE';
+  return SAMPLE;
+}
+
+/* ================= Render ================= */
+function sparkSvg(points, w, h){
+  if (!points || points.length < 2) return '';
+  const step = w/(points.length-1);
+  const pts = points.map((v,i)=>`${(i*step).toFixed(1)},${(h - v*h*0.86 - h*0.07).toFixed(1)}`).join(' ');
+  const upTrend = points[points.length-1] >= points[0];
+  const color = upTrend ? UP_META[prefs.upMode].upHex : UP_META[prefs.upMode].dnHex;
+  return `<svg viewBox="0 0 ${w} ${h}" class="w-full h-12" preserveAspectRatio="none">
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.5"
+      stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+  </svg>`;
+}
+
+function flashIfChanged(id, val){
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (lastSnapshot[id] !== undefined && lastSnapshot[id] !== String(val)){
+    el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  lastSnapshot[id] = String(val);
+}
+
+function renderTop(data){
+  const st = STATUS_META[data.regime?.status] || STATUS_META.NEUTRAL;
+  const chip = document.getElementById('regimeChip');
+  chip.textContent = `시장 국면 : ${st.label}`;
+  chip.className = `font-bold px-3.5 py-1.5 rounded-xl border ${st.cls}`;
+  chip.style.background = st.bg;
+
+  const cntEl = document.getElementById('pickCount');
+  cntEl.textContent = picks.length;
+  flashIfChanged('pickCount', picks.length);
+
+  document.getElementById('stockCount').textContent = picks.length;
+  document.getElementById('basisDate').textContent = data.generated_at || '-';
+  document.getElementById('nextReview').textContent =
+    (data.next_review && data.next_review !== '-') ? data.next_review + ' (일요일)' : '매주 일요일';
+  document.getElementById('metaBasis').textContent =
+    `VIX ${data.regime?.vix ?? '-'} · 데이터 기준 ${data.generated_at || '-'}`;
+
+  const perf = data.performance || {};
+  const wr = perf.win_rate;
+  document.getElementById('winRate').textContent = wr != null ? wr+'%' : '-';
+  requestAnimationFrame(()=>setTimeout(()=>{
+    document.getElementById('winRing').style.strokeDashoffset =
+      String(264 - 264 * ((wr ?? 0)/100));
+  },150));
+  flashIfChanged('winRate', wr ?? '-');
+
+  const avg = document.getElementById('avgReturn');
+  avg.textContent = perf.avg_return != null ? `${perf.avg_return>0?'+':''}${perf.avg_return}%` : '-';
+  avg.style.color = perf.avg_return > 0 ? UP_META[prefs.upMode].upHex
+                  : perf.avg_return < 0 ? UP_META[prefs.upMode].dnHex : '';
+  document.getElementById('closedCount').textContent = perf.closed_count ?? '-';
+  document.getElementById('openCount').textContent = perf.open_count ?? '-';
+
+  const recent = Array.isArray(perf.recent) ? perf.recent.slice(0,5) : [];
+  document.getElementById('recentList').innerHTML = recent.length ? recent.map(r=>{
+    const open = r.status === 'OPEN';
+    const retTxt = open
+      ? '<span class="text-volt text-xs font-bold">진행중</span>'
+      : `<b class="tabular-nums" style="color:${r.return_pct>=0?UP_META[prefs.upMode].upHex:UP_META[prefs.upMode].dnHex}">${r.return_pct>0?'+':''}${r.return_pct}%</b>`;
+    return `<div class="flex items-center justify-between gap-2 rounded-lg inset px-2.5 py-1.5 text-xs">
+      <span class="truncate font-semibold">${esc(r.name)}</span>${retTxt}</div>`;
+  }).join('')
+  : `<p class="text-xs t3 rounded-lg border border-dashed py-3 text-center" style="border-color:var(--line-strong)">아직 완료된 추천이 없습니다. 성적표가 쌓이면 공개됩니다.</p>`;
+}
+
+function renderPicks(){
+  const wrap = document.getElementById('pickList');
+  if (!picks.length){
+    wrap.innerHTML = `
+      <div class="md:col-span-2 xl:col-span-3 card rounded-3xl py-20 text-center">
+        <p class="text-2xl font-black t3">이번 주 조건 통과 종목 없음</p>
+        <p class="mt-2 text-sm t3">선별 기준을 통과한 종목이 없는 주입니다. 지금은 관망이 정답입니다.</p>
+      </div>`;
+    return;
+  }
+  window.__picks = picks;
+  wrap.innerHTML = picks.map((p,i)=>{
+    const isUp = !String(p.change_rate||'').startsWith('-');
+    const scoreColor = p.score>=70 ? UP_META.intl.upHex : p.score>=55 ? '#FFC93C' : 'var(--t3)';
+    return `
+    <article class="rise card card-lift rounded-3xl p-5 flex flex-col" style="animation-delay:${Math.min(i,8)*60}ms">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-start gap-3 min-w-0">
+          <span class="shrink-0 text-4xl font-black tabular-nums text-volt leading-none">${p.rank}</span>
+          <div class="min-w-0">
+            <h3 class="text-xl font-black truncate">${esc(p.name)}</h3>
+            <span class="text-xs font-mono t3">${esc(p.symbol)}</span>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-2xl font-black tabular-nums" style="color:${scoreColor}">${p.score}</p>
+          <p class="text-[9px] font-bold t3 tracking-widest">SCORE</p>
+        </div>
+      </div>
+      ${sparkSvg(p.spark, 300, 48)}
+      <div class="flex items-end justify-between gap-2 mt-1">
+        <p class="text-2xl font-black tabular-nums">${esc(p.price)}</p>
+        ${p.change_rate ? `<span class="${isUp?clsUp():clsDn()} font-extrabold tabular-nums mb-1">${esc(p.change_rate)}</span>`:''}
+      </div>
+      <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+        <div class="rounded-xl inset py-2" style="border-color:rgba(52,211,153,.3)">
+          <p class="text-[10px] font-bold text-bull/70">목표가</p>
+          <p class="text-sm font-black text-bull tabular-nums">${Number(p.target).toLocaleString()}</p>
+        </div>
+        <div class="rounded-xl inset py-2" style="border-color:rgba(251,113,133,.3)">
+          <p class="text-[10px] font-bold text-bear/70">손절가</p>
+          <p class="text-sm font-black text-bear tabular-nums">${Number(p.stop).toLocaleString()}</p>
+        </div>
+        <div class="rounded-xl inset py-2">
+          <p class="text-[10px] font-bold t3">보유 기간</p>
+          <p class="text-sm font-black">${esc(p.period)}</p>
+        </div>
+      </div>
+      <div class="mt-3 flex flex-wrap gap-1.5">
+        ${(p.tags||[]).map(t=>`<span class="text-[11px] font-bold px-2 py-0.5 rounded-md inset t2">${esc(t)}</span>`).join('')}
+      </div>
+      <p class="mt-2.5 text-[13px] leading-relaxed t2 flex-1">${esc(p.reason)}</p>
+      <button onclick="openPick(${i}); sfx.coin()"
+        class="mt-4 w-full py-2.5 rounded-xl bg-volt/10 border border-volt/40 text-volt font-extrabold text-sm hover:bg-volt hover:text-[#0B1730] transition-all active:scale-[.97]">
+        이 시나리오 계산하기
+      </button>
+    </article>`;
+  }).join('');
+}
+
+/* ================= Modal & Calculator Link ================= */
+function openPick(i){
+  const p = picks[i];
+  if (!p) return;
+  window.__modalPick = i;
+  const rr = Math.abs((p.target - p.entry) / (p.entry - p.stop));
+  document.getElementById('modalHeader').innerHTML = `
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-3xl font-black text-volt">#${p.rank}</span>
+          <h3 class="text-2xl font-black">${esc(p.name)}</h3>
+        </div>
+        <p class="mt-1 text-lg font-black tabular-nums">${esc(p.price)}
+          <span class="text-sm font-bold t3">진입 희망가</span></p>
+      </div>
+      <button onclick="closeModal()" class="shrink-0 w-9 h-9 rounded-full inset flex items-center justify-center t3">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>`;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="rounded-2xl bg-gradient-to-br from-volt/15 to-transparent border border-volt/40 p-4">
+      <h4 class="text-sm font-black text-volt mb-3">SWING SCENARIO</h4>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="rounded-xl inset p-3" style="border-color:rgba(52,211,153,.3)">
+          <p class="text-[11px] font-bold text-bull/80">목표가</p>
+          <p class="text-base font-black text-bull tabular-nums">${Number(p.target).toLocaleString()}원</p>
+        </div>
+        <div class="rounded-xl inset p-3" style="border-color:rgba(251,113,133,.3)">
+          <p class="text-[11px] font-bold text-bear/80">손절가</p>
+          <p class="text-base font-black text-bear tabular-nums">${Number(p.stop).toLocaleString()}원</p>
+        </div>
+        <div class="rounded-xl inset p-3">
+          <p class="text-[11px] font-bold t3">손익비</p>
+          <p class="text-base font-black tabular-nums">${rr.toFixed(2)}</p>
+        </div>
+      </div>
+    </div>
+    <div class="rounded-2xl inset p-4">
+      <h4 class="text-sm font-black mb-2">선정 근거</h4>
+      <p class="text-[15px] leading-relaxed t2">${esc(p.reason)}</p>
+      <div class="mt-3 flex flex-wrap gap-1.5">
+        ${(p.tags||[]).map(t=>`<span class="text-[11px] font-bold px-2 py-0.5 rounded-md inset t2">${esc(t)}</span>`).join('')}
+      </div>
+    </div>`;
+  const ov = document.getElementById('modalOverlay');
+  ov.classList.remove('hidden'); ov.classList.add('flex');
+  document.body.style.overflow = 'hidden';
+  const panel = document.getElementById('modalPanel');
+  panel.classList.remove('pop'); void panel.offsetWidth; panel.classList.add('pop');
+}
+function closeModal(){
+  const ov = document.getElementById('modalOverlay');
+  ov.classList.add('hidden'); ov.classList.remove('flex');
+  document.body.style.overflow = '';
+}
+function fillCalc(i){
+  const p = picks[i];
+  if (!p) return;
+  closeModal();
+  document.getElementById('calcEntry').value = p.entry;
+  document.getElementById('calcStop').value = p.stop;
+  document.getElementById('calcTarget').value = p.target;
+  computeRisk(false);
+  document.getElementById('calcEntry').closest('.card')
+    ?.scrollIntoView({ behavior:'smooth', block:'center' });
+  setTimeout(()=>document.getElementById('calcResult')
+    ?.classList.add('flash'), 350);
+  sfx.chime();
+}
+
+/* ================= 3-Stage Checklist ================= */
+function loadChecks(){
+  try { return JSON.parse(localStorage.getItem('sg_checks_'+todayKey())) || {}; }
+  catch(_){ return {}; }
+}
+function renderChecklist(){
+  const checks = loadChecks();
+  let total = 0, done = 0;
+  document.getElementById('checkStages').innerHTML = CHECK_STAGES.map((stage, si)=>{
+    const stageDone = stage.items.filter(i=>checks[i]).length;
+    total += stage.items.length; done += stageDone;
+    const pct = Math.round(stageDone/stage.items.length*100);
+    return `
+      <div>
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <p class="text-sm font-black ${stageDone===stage.items.length?'text-bull':'t2'}">${esc(stage.title)}</p>
+          <span class="text-xs font-bold tabular-nums t3">${stageDone}/${stage.items.length}</span>
+        </div>
+        <div class="h-1.5 rounded-full overflow-hidden mb-2.5" style="background:var(--line)">
+          <div class="h-full rounded-full transition-all duration-500 ${stageDone===stage.items.length?'bg-bull':'bg-volt'}" style="width:${pct}%"></div>
+        </div>
+        <ul class="space-y-2">
+          ${stage.items.map(item=>`
+            <li onclick="toggleCheck(this)" data-item="${esc(item)}"
+                class="cursor-pointer select-none flex items-center gap-3 rounded-2xl px-4 py-2.5 border transition-all duration-200
+                       ${checks[item]?'bg-emerald-400/10 border-emerald-400/40':'hover:-translate-y-0.5'}"
+                style="${checks[item]?'':'background:var(--card-solid); border-color:var(--line)'}">
+              <span class="shrink-0 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all
+                           ${checks[item]?'bg-emerald-400 border-emerald-400 check-pop':'border-white/25'}" style="${checks[item]?'':'border-color:var(--line-strong)'}">
+                ${checks[item]?'<svg class="w-4 h-4 text-[#0B1730]" fill="none" stroke="currentColor" stroke-width="3.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>':''}
+              </span>
+              <span class="text-sm sm:text-[15px] font-semibold leading-snug ${checks[item]?'text-emerald-300 line-through decoration-emerald-400/50':'t1'}">${esc(item)}</span>
+            </li>`).join('')}
+        </ul>
+      </div>`;
+  }).join('');
+  const pctAll = Math.round(done/total*100);
+  document.getElementById('checkProgress').textContent = pctAll+'%';
+  document.getElementById('checkBar').style.width = pctAll+'%';
+}
+function toggleCheck(el){
+  const item = el.dataset.item;
+  const checks = loadChecks();
+  const now = !checks[item];
+  checks[item] = now;
+  localStorage.setItem('sg_checks_'+todayKey(), JSON.stringify(checks));
+  now ? sfx.tick() : sfx.uncheck();
+  const beforeTotal = Object.values(checks).filter(Boolean).length;
+  const grandTotal = CHECK_STAGES.reduce((n,s)=>n+s.items.length,0);
+  if (now && beforeTotal === grandTotal){ sfx.chime(); }
+  renderChecklist();
+}
+function resetChecklist(){
+  localStorage.removeItem('sg_checks_'+todayKey());
+  renderChecklist();
+}
+
+/* ================= Risk Calculator (실시간) ================= */
+['calcEntry','calcStop','calcTarget','calcCapital'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>computeRisk(false));
+});
+document.getElementById('calcRisk').addEventListener('input', e=>{
+  document.getElementById('riskLabel').textContent = e.target.value;
+  computeRisk(false);
+});
+function computeRisk(withSound){
+  const entry = parseFloat(document.getElementById('calcEntry').value);
+  const stop = parseFloat(document.getElementById('calcStop').value);
+  const target = parseFloat(document.getElementById('calcTarget').value);
+  const capital = parseFloat(document.getElementById('calcCapital').value);
+  const riskPct = parseFloat(document.getElementById('calcRisk').value);
+  if (!(entry>0 && stop>0 && target>0 && capital>0) || stop===target) return;
+
+  const lossPer = Math.abs(entry-stop);
+  const gainPer = Math.abs(target-entry);
+  const rr = gainPer/lossPer;
+  const riskAmt = capital*riskPct/100;
+  const qty = Math.floor(riskAmt/lossPer);
+  const weight = qty*entry/capital*100;
+
+  const res = document.getElementById('calcResult');
+  res.classList.remove('hidden');
+  document.getElementById('rrRatio').textContent = rr.toFixed(2);
+  document.getElementById('rangePct').textContent =
+    `${(lossPer/entry*100).toFixed(1)}% / ${(gainPer/entry*100).toFixed(1)}%`;
+  document.getElementById('qtyResult').textContent = qty.toLocaleString()+'주';
+  document.getElementById('weightResult').innerHTML =
+    `${weight.toFixed(1)}%<br><span class="text-base text-bear">-${riskAmt.toLocaleString()}원</span>`;
+  const adv = document.getElementById('calcAdvice');
+  let txt, cls, hex;
+  if (rr>=2){ txt=`진입 조건 충족 — 손익비 ${rr.toFixed(2)} (기준 2.0 이상)`; hex='#34D399'; cls='bg-emerald-400/10'; }
+  else if (rr>=1.5){ txt=`조건부 진입 — 손익비 ${rr.toFixed(2)} (비중 축소 권장)`; hex='#B8860B'; cls='bg-volt/10'; }
+  else { txt=`진입 재검토 — 손익비 ${rr.toFixed(2)} (기준 미달)`; hex='#FB7185'; cls='bg-bear/10'; }
+  adv.textContent = txt;
+  adv.className = 'mt-3 text-sm font-bold text-center rounded-xl py-2.5 border '+cls;
+  adv.style.color = hex; adv.style.borderColor = hex+'66';
+  if (withSound) rr >= 2 ? sfx.coin() : sfx.warn();
+}
+
+/* ================= Journal ================= */
+function loadJournal(){
+  try { return JSON.parse(localStorage.getItem('sg_journal')) || []; }
+  catch(_){ return []; }
+}
+function renderJournal(){
+  const list = loadJournal().slice().reverse();
+  const el = document.getElementById('journalList');
+  if (!list.length){
+    el.innerHTML = `<div class="rounded-2xl border border-dashed py-10 text-center t3 font-semibold" style="border-color:var(--line-strong)">아직 복기 기록이 없습니다. 첫 거래를 기록해 보세요.</div>`;
+    return;
+  }
+  const am = {
+    BUY:['매수','bg-emerald-400/15 text-emerald-300 border-emerald-400/30'],
+    SELL:['매도','bg-bear/15 text-bear border-bear/30'],
+    NOTE:['관찰','bg-sky-400/15 text-sky-300 border-sky-400/30']
+  };
+  el.innerHTML = list.map(j=>{
+    const a = am[j.action] || am.NOTE;
+    return `<div class="flex items-center gap-3 rounded-2xl inset px-4 py-3">
+      <span class="shrink-0 text-xs font-black px-2.5 py-1 rounded-lg border ${a[1]}">${a[0]}</span>
+      <div class="min-w-0 flex-1">
+        <p class="font-extrabold text-sm">${esc(j.symbol)}
+          <span class="ml-1 font-mono text-xs t3 tabular-nums">${Number(j.price).toLocaleString()}</span></p>
+        <p class="text-xs t3 truncate">${esc(j.memo||'-')}</p>
+      </div>
+      <span class="shrink-0 text-xs t3 tabular-nums">${esc(j.date)}</span>
+      <button onclick="deleteJournal('${esc(j.id)}')" class="shrink-0 w-7 h-7 rounded-lg hover:bg-bear/20 t3 hover:text-bear flex items-center justify-center transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+function addJournal(e){
+  e.preventDefault();
+  const j = {
+    id: Date.now().toString(36),
+    date: document.getElementById('jDate').value,
+    symbol: document.getElementById('jSymbol').value.trim(),
+    action: document.getElementById('jAction').value,
+    price: document.getElementById('jPrice').value,
+    memo: document.getElementById('jMemo').value.trim()
+  };
+  if (!j.symbol) return;
+  const list = loadJournal(); list.push(j);
+  localStorage.setItem('sg_journal', JSON.stringify(list));
+  e.target.reset();
+  document.getElementById('jDate').value = todayKey();
+  renderJournal(); sfx.coin();
+}
+function deleteJournal(id){
+  localStorage.setItem('sg_journal',
+    JSON.stringify(loadJournal().filter(j=>j.id!==id)));
+  renderJournal(); sfx.uncheck();
+}
+function exportJournal(){
+  const blob = new Blob([JSON.stringify(loadJournal(),null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'swingguide_journal_'+todayKey()+'.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ================= Init ================= */
+(async function init(){
+  applyTheme();
+  document.getElementById('jDate').value = todayKey();
+  renderChecklist();
+  renderJournal();
+
+  const data = await loadData();
+  picks = Array.isArray(data.picks) ? data.picks : [];
+  renderTop(data);
+  renderPicks();
+  if (picks.length && !prefs.muted) setTimeout(()=>sfx.chime(), 600);
+
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+})();
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+name: Weekly Picks
+
+# 매주 일요일 KST 21:00 (UTC 12:00) 자동 실행 -> 이번 주 후보 갱신
+on:
+  schedule:
+    - cron: "0 12 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: batch/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r batch/requirements.txt
+
+      - name: Run weekly screener
+        run: python -u screener.py
+
+      - name: Commit and push picks
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [[ -n "$(git status --porcelain picks.json data/picks_history.json)" ]]; then
+            git add picks.json data/picks_history.json
+            git commit -m "chore(picks): weekly screening $(date +'%Y-%m-%d')"
+            git push
+            echo "[ok] weekly picks committed & pushed"
+          else
+            echo "[skip] no changes in picks"
+          fi

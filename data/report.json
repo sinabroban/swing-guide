@@ -1,0 +1,66 @@
+{
+  "updated_at": "2026-08-24 16:00:00",
+  "market_regime": {
+    "score": 75,
+    "status": "ATTACK",
+    "kr_summary": "외국인 수급 유입 및 KOSPI 60일선 지지 형성 중",
+    "us_summary": "S&P500 신고가 형성 후 숨고르기 국면",
+    "macro": { "vix": 15.2, "exchange_rate": 1320.5 }
+  },
+  "swing_stocks": [
+    {
+      "symbol": "005930",
+      "name": "삼성전자",
+      "market": "KRX",
+      "category": "SAFE",
+      "price": 78500,
+      "change_rate": 1.5,
+      "analysis_report": {
+        "reason_1_fundamental": "3분기 연속 영업이익 개선세 유지 및 PBR 저평가 구간 진입. HBM 중심 메모리 ASP 상승이 하반기 마진 개선을 견인할 전망.",
+        "reason_2_technical": "60일 이동평균선 지지 확인 후 기관/외국인 동반 순매수 전환. 거래량 동반 상승으로 단기 추세 강도 양호.",
+        "reason_3_macro_link": "미국 글로벌 반도체 지수(SOX) 반등 및 AI 서버 수요 확대에 따른 한/미 공급망 연동 수혜 예상.",
+        "scenario": {
+          "target_price": 88000,
+          "stop_loss": 74000,
+          "holding_period": "1~2개월"
+        }
+      }
+    },
+    {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "market": "US",
+      "category": "MOMENTUM",
+      "price": 128.4,
+      "change_rate": 2.8,
+      "analysis_report": {
+        "reason_1_fundamental": "데이터센터 매출 성장률이 컨센서스를 상회하며 AI 가속기 수주 잔고가 여전히 공급을 초과하는 국면.",
+        "reason_2_technical": "50일선 위에서 고점·저점 상향 구조 유지, 단기 과열(RSI 70대)이나 눌림목 매수 세력 강함.",
+        "reason_3_macro_link": "국내 AI 반도체 밸류체인(후공정·소재) 주가와 높은 상관관계. 미 실적 발표 시 국내 관련주 동반 변동성 유의.",
+        "scenario": {
+          "target_price": 148.0,
+          "stop_loss": 118.0,
+          "holding_period": "1~1.5개월"
+        }
+      }
+    },
+    {
+      "symbol": "005380",
+      "name": "현대차",
+      "market": "KRX",
+      "category": "VALUE",
+      "price": 245000,
+      "change_rate": -0.4,
+      "analysis_report": {
+        "reason_1_fundamental": "PER 4배대, 배당수익률 6% 내외의 대표 저평가 가치주. 자회사 편입 이슈로 기업가치 제고 로드맵 진행 중.",
+        "reason_2_technical": "장기 이동평균선 상방 지지 및 우량 외국인 수급 누적. 변동성 낮아 보수형 스윙에 적합.",
+        "reason_3_macro_link": "원/달러 환율 1,300원대 유지 시 수출 마진 방어. 미국 인플레이션감축법(IRA) 완화 흐름 수혜.",
+        "scenario": {
+          "target_price": 270000,
+          "stop_loss": 232000,
+          "holding_period": "2~3개월"
+        }
+      }
+    }
+  ]
+}

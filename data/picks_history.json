@@ -1,0 +1,104 @@
+{
+  "picks": [
+    {
+      "week": "2026-W35",
+      "added_at": "2026-08-24 16:55:23",
+      "status": "OPEN",
+      "symbol": "086790",
+      "name": "하나금융지주",
+      "entry": 128700,
+      "stop": 121171,
+      "target": 141248
+    },
+    {
+      "week": "2026-W35",
+      "added_at": "2026-08-24 16:55:23",
+      "status": "OPEN",
+      "symbol": "207940",
+      "name": "삼성바이오로직스",
+      "entry": 1573000,
+      "stop": 1494350,
+      "target": 1703952
+    },
+    {
+      "week": "2026-W35",
+      "added_at": "2026-08-24 16:55:23",
+      "status": "OPEN",
+      "symbol": "055550",
+      "name": "신한지주",
+      "entry": 103300,
+      "stop": 97582,
+      "target": 112829
+    },
+    {
+      "week": "2026-W35",
+      "added_at": "2026-08-24 16:55:23",
+      "status": "OPEN",
+      "symbol": "105560",
+      "name": "KB금융",
+      "entry": 163100,
+      "stop": 154782,
+      "target": 176964
+    },
+    {
+      "week": "2026-W35",
+      "added_at": "2026-08-24 16:55:23",
+      "status": "OPEN",
+      "symbol": "068270",
+      "name": "셀트리온",
+      "entry": 194000,
+      "stop": 183524,
+      "target": 211460
+    }
+  ],
+  "performance": {
+    "closed_count": 0,
+    "win_rate": null,
+    "avg_return": null,
+    "best": null,
+    "worst": null,
+    "open_count": 5,
+    "recent": [
+      {
+        "week": "2026-W35",
+        "symbol": "086790",
+        "name": "하나금융지주",
+        "status": "OPEN",
+        "return_pct": null,
+        "result": null
+      },
+      {
+        "week": "2026-W35",
+        "symbol": "207940",
+        "name": "삼성바이오로직스",
+        "status": "OPEN",
+        "return_pct": null,
+        "result": null
+      },
+      {
+        "week": "2026-W35",
+        "symbol": "055550",
+        "name": "신한지주",
+        "status": "OPEN",
+        "return_pct": null,
+        "result": null
+      },
+      {
+        "week": "2026-W35",
+        "symbol": "105560",
+        "name": "KB금융",
+        "status": "OPEN",
+        "return_pct": null,
+        "result": null
+      },
+      {
+        "week": "2026-W35",
+        "symbol": "068270",
+        "name": "셀트리온",
+        "status": "OPEN",
+        "return_pct": null,
+        "result": null
+      }
+    ]
+  }
+}

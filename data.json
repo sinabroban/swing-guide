@@ -1,0 +1,69 @@
+{
+  "updated_at": "2026-08-24 14:40:56",
+  "market_regime": {
+    "score": 50,
+    "status": "NEUTRAL",
+    "kr_summary": "데이터 부족으로 판단 보류",
+    "us_summary": "데이터 부족으로 판단 보류",
+    "macro": {
+      "vix": 0,
+      "exchange_rate": 0
+    }
+  },
+  "swing_stocks": [
+    {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "market": "US",
+      "category": "MOMENTUM",
+      "price": "-",
+      "change_rate": "+0.0%",
+      "analysis_report": {
+        "reason_1": "[재무/가치] 핵심 재무 지표 확인 실패. 안정적인 이익 구조와 현금흐름이 가치 방어력을 제공.",
+        "reason_2": "[기술/수급] 기술적 지표 확인 실패.",
+        "reason_3": "[한/미 연계] 글로벌 빅테크 CAPEX 및 AI 인프라 투자 사이클 직결 종목.",
+        "scenario": {
+          "target": "$115.00",
+          "stop": "$92.00",
+          "period": "2~3개월"
+        }
+      }
+    },
+    {
+      "symbol": "AAPL",
+      "name": "애플",
+      "market": "US",
+      "category": "SAFE",
+      "price": "-",
+      "change_rate": "+0.0%",
+      "analysis_report": {
+        "reason_1": "[재무/가치] 핵심 재무 지표 확인 실패. 안정적인 이익 구조와 현금흐름이 가치 방어력을 제공.",
+        "reason_2": "[기술/수급] 기술적 지표 확인 실패.",
+        "reason_3": "[한/미 연계] 글로벌 빅테크 CAPEX 및 AI 인프라 투자 사이클 직결 종목.",
+        "scenario": {
+          "target": "$108.00",
+          "stop": "$94.00",
+          "period": "1~2개월"
+        }
+      }
+    },
+    {
+      "symbol": "JNJ",
+      "name": "존슨앤드존슨",
+      "market": "US",
+      "category": "VALUE",
+      "price": "-",
+      "change_rate": "+0.0%",
+      "analysis_report": {
+        "reason_1": "[재무/가치] 핵심 재무 지표 확인 실패. 안정적인 이익 구조와 현금흐름이 가치 방어력을 제공.",
+        "reason_2": "[기술/수급] 기술적 지표 확인 실패.",
+        "reason_3": "[한/미 연계] 글로벌 빅테크 CAPEX 및 AI 인프라 투자 사이클 직결 종목.",
+        "scenario": {
+          "target": "$108.00",
+          "stop": "$94.00",
+          "period": "2~3개월"
+        }
+      }
+    }
+  ]
+}
